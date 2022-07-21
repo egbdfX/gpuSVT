@@ -1,4 +1,7 @@
 # gpuSVT
+
+**gpuSVT** is a GPU accelerated singular value thresholding software written in Python.
+
 How to use the code: On CML,
 
 (1) "conda create --name SVTexample python=3.9";
