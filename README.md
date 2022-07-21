@@ -2,20 +2,32 @@
 
 **gpuSVT** is a GPU accelerated singular value thresholding software written in Python.
 
-How to use the code: On CML,
+## Installation
 
-(1) "conda create --name SVTexample python=3.9";
+On Linux, after downloading the software package from https://github.com/egbdfX/gpuSVT, the programme can be built with:
+```
+conda create --name SVTexample python=3.9
+conda activate SVTexample
+cd /path/to/code
+make
+pip install cupy-cuda
+pip install scipy
+pip install mat4py
+```
+The main function of the package is in *gpuSVT_main.py*.
 
-(2) "conda activate SVTexample";
+## Example
 
-(3) Download RandomSVD.zip;
+Download the *example* file, which includes three input files (*ini.mat*, *pyinp.mat*, *pymask.mat*) and a script file (*gpuSVT_example.py*).
 
-(4) "unzip RandomSVD.zip";
+Run the script by:
+```
+python gpuSVT_example.py
+```
+The output files with names start by *"nnR"* are the complete matrices. The output files with names start by *"recon_error"* are the reconstruction errors varying with the increase of iterations. Multiple complete matrices and their corresponding reconstruction errors will be outputted separately.
 
-(5) "cd /path/to/RandomSVD";
+## Reference
 
-(6) "make"
+When referencing this code, please cite our related paper:
 
-(7) Download example.py, ini.mat, pyinp.mat, and pymask.mat;
-
-(8) Either "nohup python example_numpy.py&" or "nohup python example_cupy.py&".
+X. Li, K. Adamek, W. Armour, “A GPU accelerated singular value thresholding software written in Python”.
