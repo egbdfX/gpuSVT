@@ -1,4 +1,5 @@
-/* See the LICENSE file at the top-level directory of this distribution. */
+/* utilities_error.h and utilities_mem.h are based on Error and Mem data structures that were created by Fred Dulwich and are used with his permission */
+
 
 #ifndef UTILITIES_ERRORS_H_
 #define UTILITIES_ERRORS_H_
