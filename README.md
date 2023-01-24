@@ -32,7 +32,7 @@ The output files with the names started by *"nnR"* are the complete matrices. Th
 
 When referencing this code, please cite our related paper:
 
-X. Li, K. Adamek, W. Armour, “A GPU accelerated singular value thresholding software written in Python”.
+X. Li, K. Adamek, W. Armour, “GPU accelerated singular value thresholding”.
 
 ## License
 
