@@ -26,7 +26,7 @@ Run the script by:
 ```
 python gpuSVT_example.py
 ```
-The output files with the names started by *"nnR"* are the complete matrices. The output files with the names started by *"recon_error"* are the reconstruction errors. Multiple complete matrices and their corresponding reconstruction errors will be outputted separately.
+The output files with the names prefixed by *"nnR"* are the complete matrices. The output files with the names prefixed by *"recon_error"* are the reconstruction errors. Multiple complete matrices and their corresponding reconstruction errors will be outputted separately.
 
 ## Reference
 
