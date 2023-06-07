@@ -8,7 +8,7 @@ On Linux, after downloading the software package from https://github.com/egbdfX/
 ```
 conda create --name SVTexample python=3.9
 conda activate SVTexample
-cd /path/to/code
+cd /path/to/src
 make
 pip install cupy-cuda
 pip install scipy
