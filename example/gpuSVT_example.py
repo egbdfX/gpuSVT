@@ -6,7 +6,6 @@ from __future__ import division
 import os
 import cupy
 import scipy.io
-from mat4py import loadmat
 import time
 from cuRandomSVD import *
 
@@ -28,32 +27,32 @@ def gpuSVT(A,mask,tau=None,delta=None,epsilon=1e-2,rel_improvement=-0.01,max_ite
     if not delta:
         delta = 1.2 * cupy.sum(mask) / cupy.prod(cupy.asarray(A.shape))
 
-    r_previous = 0
+    previous = 0
 
     for k in range(max_iterations):
         if k == 0:
             X = cupy.zeros_like(A)
         else:
-            sk = r_previous + 1
+            rank = previous + 1
             
-            if sk < min(len(Y),len(Y[0]))/2-9:
-                p = min(sk, Y.shape[1]-1)+20
+            if rank < min(len(Y),len(Y[0]))/2-9:
+                p = min(rank, Y.shape[1]-1)+20
             else:
-                p = min(len(Y),len(Y[0])) - sk
-            S, U, V = cuRandomSVD(Y, int(min(sk, Y.shape[1]-1)), p, nIterations=1)
+                p = min(len(Y),len(Y[0])) - rank
+            S, U, V = cuRandomSVD(Y, int(min(rank, Y.shape[1]-1)), p, nIterations=1)
             
             while cupy.min(S) >= tau:
-                sk = sk + 5
+                rank = rank + 5
                 
-                if sk < min(len(Y),len(Y[0]))/2-9:
-                    p = min(sk, Y.shape[1]-1)+20
+                if rank < min(len(Y),len(Y[0]))/2-9:
+                    p = min(rank, Y.shape[1]-1)+20
                 else:
-                    p = min(len(Y),len(Y[0])) - sk
+                    p = min(len(Y),len(Y[0])) - rank
                 
-                S, U, V = cuRandomSVD(Y, int(min(sk, Y.shape[1]-1)), p, nIterations=1)
+                S, U, V = cuRandomSVD(Y, int(min(rank, Y.shape[1]-1)), p, nIterations=1)
                 
             shrink_S = cupy.maximum(S - tau, 0)
-            r_previous = cupy.count_nonzero(shrink_S)
+            previous = cupy.count_nonzero(shrink_S)
             diag_shrink_S = cupy.diag(shrink_S)
             X = cupy.dot(cupy.dot(U, diag_shrink_S), V)
         Y += delta * mask * (A - X)
