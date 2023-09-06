@@ -32,7 +32,8 @@ The output files with the names prefixed by *"nnR"* are the complete matrices. T
 
 When referencing this code, please cite our related paper:
 
-X. Li, K. Adamek, W. Armour, “GPU accelerated singular value thresholding”.
+X. Li, K. Adámek, W. Armour, "GPU accelerated singular value thresholding," SoftwareX, Volume 23, 2023, 101500.
+https://doi.org/10.1016/j.softx.2023.101500
 
 ## License
 
