@@ -110,15 +110,15 @@ void random_svd(
 		p, // Oversampling. The size of the subspace will be (k + p). (k+p) is less than min(m,n).
 		nIterations, // Number of iteration of power method.
 		types[0], // Data type of array A.
-		A, // Input matrix. Array of dimension lda*n with lda is not less than max(1,m). On exit, the contents of A are destroyed.
+		(void *) A, // Input matrix. Array of dimension lda*n with lda is not less than max(1,m). On exit, the contents of A are destroyed.
 		ld_A, // Leading dimension of two-dimensional array used to store matrix A.
 		types[1], // Data type of array S.
-		S, // Real array of dimension min(m,n). The singular values of A, sorted so that S(i) >= S(i+1).
+		(void *) S, // Real array of dimension min(m,n). The singular values of A, sorted so that S(i) >= S(i+1).
 		types[2], // Data type of array U.
-		U, // Array of dimension ldu*m with ldu is not less than max(1,m). U contains the m×m unitary matrix U. if jobu=S, only reports first min(m,n) columns of U.
+		(void *) U, // Array of dimension ldu*m with ldu is not less than max(1,m). U contains the m×m unitary matrix U. if jobu=S, only reports first min(m,n) columns of U.
 		ld_U, // Leading dimension of two-dimensional array used to store matrix U.
 		types[3],
-		V, // Array of dimension ldv*n with ldv is not less than max(1,n). V contains the n×n unitary matrix V. If jobv=S, only reports first min(m,n) columns of V.
+		(void *) V, // Array of dimension ldv*n with ldv is not less than max(1,n). V contains the n×n unitary matrix V. If jobv=S, only reports first min(m,n) columns of V.
 		ld_V, // Leading dimension of two-dimensional array used to store matrix V.
 		types[4], // type
 		&workarea_size_device, // Size in bytes of bufferOnDevice
@@ -127,6 +127,13 @@ void random_svd(
 	if (cuSOLVER_error != CUSOLVER_STATUS_SUCCESS) {
 		check_cuSOLVER_error(cuSOLVER_error);
 		printf("Buffer size cusolver error %d at %s:%d\n", cuSOLVER_error, __FILE__, __LINE__);
+		printf("A:[%ld; %ld; %ld];\n", A_nRows, A_nCols, ld_A);
+		printf("U:[%ld; %ld; %ld];\n", U_nRows, U_nCols, ld_U);
+		printf("V:[%ld; %ld; %ld];\n", V_nRows, V_nCols, ld_V);
+		printf("k = %ld; p = %ld; it = %ld;\n", k, p, nIterations);
+		printf("Returned values:\n");
+		printf("workarea_size_device = %zu;\n", workarea_size_device);
+		printf("workarea_size_host = %zu;\n", workarea_size_host);
 	}
 	
 	void *d_work;
@@ -224,11 +231,29 @@ void randomSVD_GPU_float(float *A, float *S, float *U, float *V,
 	rSVD_GPU_wrapper(A, S, U, V, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
 }
 
+void randomSVD_GPU_complex_float(float2 *A, float2 *S, float2 *U, float2 *V, 
+		int64_t A_nRows, int64_t A_nCols, int64_t ld_A, int64_t S_nCols, int64_t U_nRows, int64_t U_nCols, int64_t ld_U, int64_t V_nRows, int64_t V_nCols, int64_t ld_V, int64_t rank, int64_t oversampling, int64_t nIterations
+	){
+	std::vector<cudaDataType> types;
+	get_datatypes(&types, CUDA_C_32F);
+	
+	rSVD_GPU_wrapper(A, S, U, V, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
+}
+
 void randomSVD_GPU_double(double *A, double *S, double *U, double *V, 
 		int64_t A_nRows, int64_t A_nCols, int64_t ld_A, int64_t S_nCols, int64_t U_nRows, int64_t U_nCols, int64_t ld_U, int64_t V_nRows, int64_t V_nCols, int64_t ld_V, int64_t rank, int64_t oversampling, int64_t nIterations
 	){
 	std::vector<cudaDataType> types;
 	get_datatypes(&types, CUDA_R_64F);
+	
+	rSVD_GPU_wrapper(A, S, U, V, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
+}
+
+void randomSVD_GPU_complex_double(double2 *A, double2 *S, double2 *U, double2 *V, 
+		int64_t A_nRows, int64_t A_nCols, int64_t ld_A, int64_t S_nCols, int64_t U_nRows, int64_t U_nCols, int64_t ld_U, int64_t V_nRows, int64_t V_nCols, int64_t ld_V, int64_t rank, int64_t oversampling, int64_t nIterations
+	){
+	std::vector<cudaDataType> types;
+	get_datatypes(&types, CUDA_C_64F);
 	
 	rSVD_GPU_wrapper(A, S, U, V, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
 }
@@ -286,7 +311,7 @@ extern "C" {
 
 void random_svd_python(Mem *S, Mem *U, Mem *V, Mem *A, int32_t rank, int32_t oversampling, int32_t nIterations){
 	if(mem_num_dims(A) != 2 || mem_num_dims(U) != 2 || mem_num_dims(V) != 2) {
-		printf("Matrices have wrong dimensions.\n");
+		printf("Error: Matrices have wrong dimensions.\n");
 		return;
 	}
 	
@@ -312,8 +337,11 @@ void random_svd_python(Mem *S, Mem *U, Mem *V, Mem *A, int32_t rank, int32_t ove
 	const int64_t V_nCols = A_nCols;
 	const int64_t ld_V    = V_nCols;
 	const int64_t S_nCols = rank;
-	//printf("Matrix A = (%ld,%ld); ld_A = %ld; Matrix U = (%ld,%ld); Matrix V = (%ld,%ld); Matrix S = (%ld);\n", A_nRows, A_nCols, ld_A, U_nRows, U_nCols, V_nRows, V_nCols, S_nCols);
-	//printf("rank = %ld; oversampling = %ld; nIterations = %ld;\n", rank, oversampling, (int64_t) nIterations);
+	
+	if( (rank + oversampling) > min(A_nRows, A_nCols)){
+		printf("Error: oversampling + rank must be <= min(A_nRows, A_nCols).\n");
+		return;
+	}
 	
 	if( mem_location(A) == MEM_CPU ) {
 		if(mem_type(A) == MEM_FLOAT){
@@ -325,6 +353,15 @@ void random_svd_python(Mem *S, Mem *U, Mem *V, Mem *A, int32_t rank, int32_t ove
 
 			randomSVD_GPU_float(A_data, S_data, U_data, V_data, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations);
 		}
+		else if(mem_type(A) == MEM_COMPLEX_FLOAT){
+			float2 *A_data, *S_data, *U_data, *V_data;
+			A_data = (float2 *) mem_data(A);
+			S_data = (float2 *) mem_data(S);
+			U_data = (float2 *) mem_data(U);
+			V_data = (float2 *) mem_data(V);
+			
+			randomSVD_GPU_complex_float(A_data, S_data, U_data, V_data, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations);
+		}
 		else if(mem_type(A) == MEM_DOUBLE){
 			double *A_data, *S_data, *U_data, *V_data;
 			A_data = (double *) mem_data(A);
@@ -333,6 +370,15 @@ void random_svd_python(Mem *S, Mem *U, Mem *V, Mem *A, int32_t rank, int32_t ove
 			V_data = (double *) mem_data(V);
 			
 			randomSVD_GPU_double(A_data, S_data, U_data, V_data, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations);
+		}
+		else if(mem_type(A) == MEM_COMPLEX_DOUBLE){
+			double2 *A_data, *S_data, *U_data, *V_data;
+			A_data = (double2 *) mem_data(A);
+			S_data = (double2 *) mem_data(S);
+			U_data = (double2 *) mem_data(U);
+			V_data = (double2 *) mem_data(V);
+			
+			randomSVD_GPU_complex_double(A_data, S_data, U_data, V_data, A_nRows, A_nCols, ld_A, S_nCols, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations);
 		}
 		else {
 			printf("Unsupported data type.\n");
@@ -352,6 +398,18 @@ void random_svd_python(Mem *S, Mem *U, Mem *V, Mem *A, int32_t rank, int32_t ove
 			
 			random_svd(d_A_data, d_S_data, d_U_data, d_V_data, A_nRows, A_nCols, ld_A, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
 		}
+		else if(mem_type(A) == MEM_COMPLEX_FLOAT){
+			float2 *d_A_data, *d_S_data, *d_U_data, *d_V_data;
+			d_A_data = (float2 *) mem_data(A);
+			d_S_data = (float2 *) mem_data(S);
+			d_U_data = (float2 *) mem_data(U);
+			d_V_data = (float2 *) mem_data(V);
+			
+			std::vector<cudaDataType> types;
+			get_datatypes(&types, CUDA_C_32F);
+			
+			random_svd(d_A_data, d_S_data, d_U_data, d_V_data, A_nRows, A_nCols, ld_A, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
+		}
 		else if(mem_type(A) == MEM_DOUBLE){
 			double *d_A_data, *d_S_data, *d_U_data, *d_V_data;
 			d_A_data = (double *) mem_data(A);
@@ -361,6 +419,18 @@ void random_svd_python(Mem *S, Mem *U, Mem *V, Mem *A, int32_t rank, int32_t ove
 			
 			std::vector<cudaDataType> types;
 			get_datatypes(&types, CUDA_R_64F);
+			
+			random_svd(d_A_data, d_S_data, d_U_data, d_V_data, A_nRows, A_nCols, ld_A, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
+		}
+		else if(mem_type(A) == MEM_COMPLEX_DOUBLE){
+			double2 *d_A_data, *d_S_data, *d_U_data, *d_V_data;
+			d_A_data = (double2 *) mem_data(A);
+			d_S_data = (double2 *) mem_data(S);
+			d_U_data = (double2 *) mem_data(U);
+			d_V_data = (double2 *) mem_data(V);
+			
+			std::vector<cudaDataType> types;
+			get_datatypes(&types, CUDA_C_64F);
 			
 			random_svd(d_A_data, d_S_data, d_U_data, d_V_data, A_nRows, A_nCols, ld_A, U_nRows, U_nCols, ld_U, V_nRows, V_nCols, ld_V, rank, oversampling, nIterations, types);
 		}
