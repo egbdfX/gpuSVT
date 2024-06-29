@@ -28,6 +28,9 @@ python gpuSVT_example.py
 ```
 The output files with the names prefixed by *"nnR"* are the complete matrices. The output files with the names prefixed by *"recon_error"* are the reconstruction errors. Multiple complete matrices and their corresponding reconstruction errors will be outputted separately.
 
+## Contact
+If you have any questions or need further assistance, feel free to contact at [egbdfmusic1@gmail.com](mailto:egbdfmusic1@gmail.com).
+
 ## Reference
 
 When referencing this code, please cite our related paper:
