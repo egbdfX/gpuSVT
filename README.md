@@ -10,7 +10,7 @@ conda create --name SVTexample python=3.9
 conda activate SVTexample
 cd /path/to/src
 make
-pip install cupy-cuda
+pip install cupy-cuda (e.g., cupy-cuda12x)
 pip install scipy
 pip install mat4py
 ```
